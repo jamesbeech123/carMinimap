@@ -2,6 +2,11 @@ use std::fs;
 use std::path::Path;
 use std::io::Write;
 
+use crate::renderer;
+use image::GenericImageView;
+
+
+
 /// Fetches a map tile from disk or downloads it from OpenStreetMap if not found.
 ///
 /// # Arguments
@@ -19,16 +24,20 @@ pub async fn fetch_tile(x: u32, y: u32, zoom: u8) -> Result<Vec<u8>, Box<dyn std
 
     println!("[DEBUG] Tile path: {}", tile_path.display());
 
+    //Check if tile is downloaded
     if tile_path.exists() {
         println!("[DEBUG] Tile found on disk. Loading from {}", tile_path.display());
         let data = fs::read(tile_path)?;
         println!("[DEBUG] Successfully loaded tile from disk.");
+        display_tile(tile_path);
         return Ok(data);
     }
 
+    //Attempt to get tile from openstreetmap
     let url = format!("https://tile.openstreetmap.org/{}/{}/{}.png", zoom, x, y);
     println!("[DEBUG] Tile not found on disk. Fetching from URL: {}", url);
 
+    //Build request
     let client = reqwest::Client::new();
     let response = client
         .get(&url)
@@ -52,6 +61,9 @@ pub async fn fetch_tile(x: u32, y: u32, zoom: u8) -> Result<Vec<u8>, Box<dyn std
     let mut file = fs::File::create(tile_path)?;
     file.write_all(&bytes)?;
     println!("[DEBUG] Saved tile to disk at {}", tile_path.display());
+    display_tile(tile_path);
+
+    
 
     Ok(bytes.to_vec())
 }
@@ -82,4 +94,11 @@ pub fn gps_to_tile(lat: f64, lon: f64, zoom: u8) -> (u32, u32) {
     println!("[DEBUG] Computed tile coordinates: x={}, y={}", tile_x, tile_y);
 
     (tile_x, tile_y)
+}
+
+fn display_tile(tile_path: &Path){
+    match renderer::load_tile(&tile_path) {
+        Ok(image) => println!("Loaded image with dimensions: {:?}", image.dimensions()),
+        Err(e) => eprintln!("Failed to load tile: {}", e),
+    }
 }

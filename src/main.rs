@@ -1,6 +1,7 @@
 
 
 mod map;
+mod renderer;
 
 #[tokio::main]
 async fn main() {
