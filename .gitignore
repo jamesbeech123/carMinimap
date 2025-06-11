@@ -1,0 +1,3 @@
+echo "target/" >> .gitignore
+echo "*.rs.bk" >> .gitignore
+echo "Cargo.lock" >> .gitignore
