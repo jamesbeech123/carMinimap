@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-egui = "0.31.1"
+show-image = "0.14.1"
 gpsd = "0.1.2"
 image = "0.25.6"
 reqwest = "0.12.20"

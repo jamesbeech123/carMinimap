@@ -5,6 +5,7 @@ mod renderer;
 
 #[tokio::main]
 async fn main() {
+
     //Get current gps position
     let lat = 25.2048;
     let lon = 55.2708;

@@ -3,7 +3,6 @@ use std::path::Path;
 use std::io::Write;
 
 use crate::renderer;
-use image::GenericImageView;
 
 
 
@@ -96,9 +95,17 @@ pub fn gps_to_tile(lat: f64, lon: f64, zoom: u8) -> (u32, u32) {
     (tile_x, tile_y)
 }
 
-fn display_tile(tile_path: &Path){
-    match renderer::load_tile(&tile_path) {
-        Ok(image) => println!("Loaded image with dimensions: {:?}", image.dimensions()),
-        Err(e) => eprintln!("Failed to load tile: {}", e),
-    }
+
+
+fn display_tile(tile_path: &Path) {
+    let path_buf = tile_path.to_path_buf(); // own the path
+    show_image::run_context(move || {
+        match renderer::render_tile(&path_buf) {
+            Ok(_) => println!("Loaded image"),
+            Err(e) => eprintln!("Failed to load tile: {}", e),
+        }
+    });
 }
+
+
+
