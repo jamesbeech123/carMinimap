@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::io::Write;
 
 use crate::renderer;
@@ -28,7 +28,6 @@ pub async fn fetch_tile(x: u32, y: u32, zoom: u8) -> Result<Vec<u8>, Box<dyn std
         println!("[DEBUG] Tile found on disk. Loading from {}", tile_path.display());
         let data = fs::read(tile_path)?;
         println!("[DEBUG] Successfully loaded tile from disk.");
-        display_tile(tile_path);
         return Ok(data);
     }
 
@@ -60,7 +59,7 @@ pub async fn fetch_tile(x: u32, y: u32, zoom: u8) -> Result<Vec<u8>, Box<dyn std
     let mut file = fs::File::create(tile_path)?;
     file.write_all(&bytes)?;
     println!("[DEBUG] Saved tile to disk at {}", tile_path.display());
-    display_tile(tile_path);
+    
 
     
 
@@ -95,17 +94,29 @@ pub fn gps_to_tile(lat: f64, lon: f64, zoom: u8) -> (u32, u32) {
     (tile_x, tile_y)
 }
 
+pub fn get_surrounding_tiles(lat: f64, lon: f64, zoom: u8) -> Vec<(u32, u32)> {
+    let (x_tile, y_tile) = gps_to_tile(lat, lon, zoom);
+    println!("[DEBUG] Center tile coordinates: x={}, y={}", x_tile, y_tile);
 
-
-fn display_tile(tile_path: &Path) {
-    let path_buf = tile_path.to_path_buf(); // own the path
-    show_image::run_context(move || {
-        match renderer::render_tile(&path_buf) {
-            Ok(_) => println!("Loaded image"),
-            Err(e) => eprintln!("Failed to load tile: {}", e),
+    let mut tiles = Vec::new();
+    for dx in -1..=1 {
+        for dy in -1..=1 {
+            let new_x = (x_tile as i32 + dx).max(0) as u32;
+            let new_y = (y_tile as i32 + dy).max(0) as u32;
+            tiles.push((new_x, new_y));
         }
-    });
+    }
+
+    println!("[DEBUG] Surrounding tiles: {:?}", tiles);
+    tiles
 }
+
+pub fn tile_path(x: u32, y: u32, zoom: u8) -> PathBuf {
+    let path = format!("tiles/{}/{}/{}.png", zoom, x, y);
+    PathBuf::from(path)
+}
+
+
 
 
 
