@@ -66,6 +66,8 @@ pub async fn fetch_tile(x: u32, y: u32, zoom: u8) -> Result<Vec<u8>, Box<dyn std
     Ok(bytes.to_vec())
 }
 
+
+
 /// Converts a latitude and longitude to tile x and y coordinates at a given zoom level.
 ///
 /// # Arguments
@@ -94,6 +96,18 @@ pub fn gps_to_tile(lat: f64, lon: f64, zoom: u8) -> (u32, u32) {
     (tile_x, tile_y)
 }
 
+
+/// Gets the surrounding tiles for a given GPS coordinate and zoom level.
+/// This includes the center tile and all adjacent tiles in a 3x3 grid.
+/// 
+/// # Arguments
+/// * `lat` - The latitude in degrees.
+/// * `lon` - The longitude in degrees.
+/// * `zoom` - The zoom level (0–19).
+/// 
+/// # Returns
+/// 
+/// A vector of tuples containing the x and y coordinates of the surrounding tiles.
 pub fn get_surrounding_tiles(lat: f64, lon: f64, zoom: u8) -> Vec<(u32, u32)> {
     let (x_tile, y_tile) = gps_to_tile(lat, lon, zoom);
     println!("[DEBUG] Center tile coordinates: x={}, y={}", x_tile, y_tile);
@@ -111,6 +125,17 @@ pub fn get_surrounding_tiles(lat: f64, lon: f64, zoom: u8) -> Vec<(u32, u32)> {
     tiles
 }
 
+
+/// Constructs the file path for a tile image based on its coordinates and zoom level.
+/// 
+/// # Arguments
+/// * `x` - The x-coordinate of the tile.
+/// * `y` - The y-coordinate of the tile.
+/// * `zoom` - The zoom level of the tile.
+/// 
+/// # Returns
+/// 
+/// A `PathBuf` representing the file path to the tile image.
 pub fn tile_path(x: u32, y: u32, zoom: u8) -> PathBuf {
     let path = format!("tiles/{}/{}/{}.png", zoom, x, y);
     PathBuf::from(path)

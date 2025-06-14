@@ -6,7 +6,7 @@ mod renderer;
 
 #[tokio::main]
 async fn main() {
-    // Get current gps position
+    // Get current gps position, currently hardcoded
     let lat = 25.2048;
     let lon = 55.2708;
     let zoom = 17;
