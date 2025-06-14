@@ -1,4 +1,4 @@
-use image::{RgbaImage, GenericImage, GenericImageView};
+use image::{RgbaImage};
 use show_image::{create_window, ImageInfo, ImageView};
 
 mod map;
@@ -9,11 +9,9 @@ async fn main() {
     // Get current gps position
     let lat = 25.2048;
     let lon = 55.2708;
-    let zoom = 15;
-
-    // Convert gps to map tile and pixel coordinates
-    let (x_tile, y_tile) = map::gps_to_tile(lat, lon, zoom);
-
+    let zoom = 17;
+    let tile_size = 256; 
+    
     // Get all surrounding tiles (including center)
     let tiles = map::get_surrounding_tiles(lat, lon, zoom);
 
@@ -23,8 +21,8 @@ async fn main() {
     }
 
     // Compose all tiles into one image
-    let tile_size = 256; // adjust if your tiles are a different size
-    let grid = (tiles.iter().map(|(x, y)| x).max().unwrap() - tiles.iter().map(|(x, y)| x).min().unwrap() + 1) as u32;
+    
+    let grid = (tiles.iter().map(|(_x, _y)| _x).max().unwrap() - tiles.iter().map(|(_x, _y)| _x).min().unwrap() + 1) as u32;
     let mut canvas = RgbaImage::new(grid * tile_size, grid * tile_size);
 
     let min_x = tiles.iter().map(|(x, _)| *x).min().unwrap();

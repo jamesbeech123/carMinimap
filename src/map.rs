@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::io::Write;
 
-use crate::renderer;
+// use crate::renderer;
 
 
 
@@ -32,7 +32,7 @@ pub async fn fetch_tile(x: u32, y: u32, zoom: u8) -> Result<Vec<u8>, Box<dyn std
     }
 
     //Attempt to get tile from openstreetmap
-    let url = format!("https://tile.openstreetmap.org/{}/{}/{}.png", zoom, x, y);
+    let url = format!("https://a.tile.openstreetmap.fr/osmfr/{}/{}/{}.png", zoom, x, y);
     println!("[DEBUG] Tile not found on disk. Fetching from URL: {}", url);
 
     //Build request
