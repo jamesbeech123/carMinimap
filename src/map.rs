@@ -21,19 +21,19 @@ pub async fn fetch_tile(x: u32, y: u32, zoom: u8) -> Result<Vec<u8>, Box<dyn std
     let path = format!("tiles/{}/{}/{}.png", zoom, x, y);
     let tile_path = Path::new(&path);
 
-    println!("[DEBUG] Tile path: {}", tile_path.display());
+    log::debug!("Tile path: {}", tile_path.display());
 
     //Check if tile is downloaded
     if tile_path.exists() {
-        println!("[DEBUG] Tile found on disk. Loading from {}", tile_path.display());
+        log::debug!("Tile found on disk. Loading from {}", tile_path.display());
         let data = fs::read(tile_path)?;
-        println!("[DEBUG] Successfully loaded tile from disk.");
+        log::debug!("Successfully loaded tile from disk.");
         return Ok(data);
     }
 
     //Attempt to get tile from openstreetmap
     let url = format!("https://a.tile.openstreetmap.fr/osmfr/{}/{}/{}.png", zoom, x, y);
-    println!("[DEBUG] Tile not found on disk. Fetching from URL: {}", url);
+    log::debug!("Tile not found on disk. Fetching from URL: {}", url);
 
     //Build request
     let client = reqwest::Client::new();
@@ -43,25 +43,22 @@ pub async fn fetch_tile(x: u32, y: u32, zoom: u8) -> Result<Vec<u8>, Box<dyn std
         .send()
         .await?;
 
-    println!("[DEBUG] HTTP response received.");
+    log::debug!("HTTP response received.");
 
     if !response.status().is_success() {
-        println!("[ERROR] Failed to fetch tile: HTTP {}", response.status());
+        log::error!("Failed to fetch tile: HTTP {}", response.status());
         return Err(format!("Failed to fetch tile: {}", response.status()).into());
     }
 
     let bytes = response.bytes().await?;
-    println!("[DEBUG] Downloaded {} bytes.", bytes.len());
+    log::debug!("Downloaded {} bytes.", bytes.len());
 
     fs::create_dir_all(tile_path.parent().unwrap())?;
-    println!("[DEBUG] Created directories up to {}", tile_path.parent().unwrap().display());
+    log::debug!("Created directories up to {}", tile_path.parent().unwrap().display());
 
     let mut file = fs::File::create(tile_path)?;
     file.write_all(&bytes)?;
-    println!("[DEBUG] Saved tile to disk at {}", tile_path.display());
-    
-
-    
+    log::debug!("Saved tile to disk at {}", tile_path.display());
 
     Ok(bytes.to_vec())
 }
@@ -80,7 +77,7 @@ pub async fn fetch_tile(x: u32, y: u32, zoom: u8) -> Result<Vec<u8>, Box<dyn std
 ///
 /// A tuple `(x, y)` representing the tile coordinates.
 pub fn gps_to_tile(lat: f64, lon: f64, zoom: u8) -> (u32, u32) {
-    println!("[DEBUG] Converting GPS to tile: lat={}, lon={}, zoom={}", lat, lon, zoom);
+    log::debug!("Converting GPS to tile: lat={}, lon={}, zoom={}", lat, lon, zoom);
 
     let lat_rad = lat.to_radians();
     let n = 2u32.pow(zoom as u32) as f64;
@@ -91,7 +88,7 @@ pub fn gps_to_tile(lat: f64, lon: f64, zoom: u8) -> (u32, u32) {
     let tile_x = x as u32;
     let tile_y = y as u32;
 
-    println!("[DEBUG] Computed tile coordinates: x={}, y={}", tile_x, tile_y);
+    log::debug!("Computed tile coordinates: x={}, y={}", tile_x, tile_y);
 
     (tile_x, tile_y)
 }
@@ -110,7 +107,7 @@ pub fn gps_to_tile(lat: f64, lon: f64, zoom: u8) -> (u32, u32) {
 /// A vector of tuples containing the x and y coordinates of the surrounding tiles.
 pub fn get_surrounding_tiles(lat: f64, lon: f64, zoom: u8) -> Vec<(u32, u32)> {
     let (x_tile, y_tile) = gps_to_tile(lat, lon, zoom);
-    println!("[DEBUG] Center tile coordinates: x={}, y={}", x_tile, y_tile);
+    log::debug!("Center tile coordinates: x={}, y={}", x_tile, y_tile);
 
     let mut tiles = Vec::new();
     for dx in -1..=1 {
@@ -121,7 +118,7 @@ pub fn get_surrounding_tiles(lat: f64, lon: f64, zoom: u8) -> Vec<(u32, u32)> {
         }
     }
 
-    println!("[DEBUG] Surrounding tiles: {:?}", tiles);
+    log::debug!("Surrounding tiles: {:?}", tiles);
     tiles
 }
 
