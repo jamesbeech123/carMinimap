@@ -1,9 +1,11 @@
 use std::sync::mpsc;
 use show_image::{create_window, ImageInfo, ImageView, run_context};
 use tokio::time::{sleep, Duration};
+use std::sync::{Arc, Mutex};
 
 mod map;
 mod renderer;
+mod gps;
 
 #[tokio::main]
 async fn main() {
@@ -13,12 +15,16 @@ async fn main() {
     // Channel for sending images from async task to UI
     let (tx, rx) = mpsc::channel();
 
+    // Get current GPS position
+    let gps_data = Arc::new(Mutex::new((25.1019, 55.2394))); // fallback/default
+    let gps_port = "COM3"; // Adjust this to your GPS device's port
+    gps::spawn_gps_reader(gps_port, gps_data.clone());
+
     // Spawn async task to fetch and compose images
     tokio::spawn(async move {
         loop {
-            // 1. Get current GPS position (update if needed)
-            let lat = 25.1019;
-            let lon = 55.2394;
+            let (lat, lon) = *gps_data.lock().unwrap();
+
             let zoom = 17;
             let tile_size = 256;
 
@@ -32,14 +38,22 @@ async fn main() {
 
             // 4. Render the map (compose image)
             let tiles_i32: Vec<(i32, i32)> = tiles.iter().map(|&(x, y)| (x as i32, y as i32)).collect();
-            let canvas = renderer::combine_images(&tiles_i32, tile_size, zoom.into());
+            // Provide the missing arguments as appropriate for your use case
+            let center = (lat, lon);
+            let canvas = renderer::render_centered_map(
+                &tiles_i32,
+                tile_size,
+                zoom.into(),
+                center,
+                (512, 512),
+            );
 
             // 5. Send the image to the UI thread
             if tx.send(canvas).is_err() {
                 break; // UI closed
             }
 
-            sleep(Duration::from_secs(5)).await;
+            sleep(Duration::from_secs(1)).await;
         }
     });
 
