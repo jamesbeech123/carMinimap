@@ -138,6 +138,14 @@ pub fn tile_path(x: u32, y: u32, zoom: u8) -> PathBuf {
     PathBuf::from(path)
 }
 
+fn latlon_to_pixel(lat: f64, lon: f64, zoom: u8) -> (f64, f64) {
+    let n = 2.0_f64.powi(zoom as i32) * 256.0;
+    let x = ((lon + 180.0) / 360.0) * n;
+    let lat_rad = lat.to_radians();
+    let y = (1.0 - (lat_rad.tan() + 1.0 / lat_rad.cos()).ln() / std::f64::consts::PI) / 2.0 * n;
+    (x, y)
+}
+
 
 
 
