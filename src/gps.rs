@@ -1,4 +1,4 @@
-use serialport::SerialPort;
+
 use nmea::Nmea;
 use std::io::BufRead;
 use std::sync::{Arc, Mutex};
