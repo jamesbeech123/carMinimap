@@ -22,38 +22,44 @@ async fn main() {
 
     // Spawn async task to fetch and compose images
     tokio::spawn(async move {
+        let mut prev_gps = *gps_data.lock().unwrap();
         loop {
-            let (lat, lon) = *gps_data.lock().unwrap();
+            let curr_gps = *gps_data.lock().unwrap();
+            for step in 0..10 {
+                let lat = prev_gps.0 + (curr_gps.0 - prev_gps.0) * (step as f64) / 10.0;
+                let lon = prev_gps.1 + (curr_gps.1 - prev_gps.1) * (step as f64) / 10.0;
 
-            let zoom = 17;
-            let tile_size = 256;
+                let zoom = 17;
+                let tile_size = 256;
 
-            // 2. Get surrounding tiles
-            let tiles = map::get_surrounding_tiles(lat, lon, zoom);
+                // 2. Get surrounding tiles
+                let tiles = map::get_surrounding_tiles(lat, lon, zoom);
 
-            // 3. Fetch all tiles asynchronously
-            for &(x, y) in &tiles {
-                let _ = map::fetch_tile(x, y, zoom).await;
+                // 3. Fetch all tiles asynchronously
+                for &(x, y) in &tiles {
+                    let _ = map::fetch_tile(x, y, zoom).await;
+                }
+
+                // 4. Render the map (compose image)
+                let tiles_i32: Vec<(i32, i32)> = tiles.iter().map(|&(x, y)| (x as i32, y as i32)).collect();
+                // Provide the missing arguments as appropriate for your use case
+                let center = (lat, lon);
+                let canvas = renderer::render_centered_map(
+                    &tiles_i32,
+                    tile_size,
+                    zoom.into(),
+                    center,
+                    (512, 512),
+                );
+
+                // 5. Send the image to the UI thread
+                if tx.send(canvas).is_err() {
+                    break; // UI closed
+                }
+
+                sleep(Duration::from_millis(20)).await;
             }
-
-            // 4. Render the map (compose image)
-            let tiles_i32: Vec<(i32, i32)> = tiles.iter().map(|&(x, y)| (x as i32, y as i32)).collect();
-            // Provide the missing arguments as appropriate for your use case
-            let center = (lat, lon);
-            let canvas = renderer::render_centered_map(
-                &tiles_i32,
-                tile_size,
-                zoom.into(),
-                center,
-                (512, 512),
-            );
-
-            // 5. Send the image to the UI thread
-            if tx.send(canvas).is_err() {
-                break; // UI closed
-            }
-
-            sleep(Duration::from_secs(1)).await;
+            prev_gps = curr_gps;
         }
     });
 
