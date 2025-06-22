@@ -42,7 +42,6 @@ async fn main() {
 
                 // 4. Render the map (compose image)
                 let tiles_i32: Vec<(i32, i32)> = tiles.iter().map(|&(x, y)| (x as i32, y as i32)).collect();
-                // Provide the missing arguments as appropriate for your use case
                 let center = (lat, lon);
                 let canvas = renderer::render_centered_map(
                     &tiles_i32,
@@ -72,6 +71,5 @@ async fn main() {
                 ImageView::new(ImageInfo::rgba8(canvas.width(), canvas.height()), &canvas),
             ).unwrap();
         }
-        // The closure never returns, so no need to return Ok(()) or call .unwrap()
     });
 }
