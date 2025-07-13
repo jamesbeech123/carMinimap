@@ -12,10 +12,9 @@ serde = "1.0.219"
 tokio = { version = "1.45.1", features = ["full"] }
 log = "0.4"
 env_logger = "0.11"
-serialport = "4.7.2"
+serialport = { version = "4.7.2", default-features = false }  # Disable udev
 nmea = "0.7.0"
 tracing = { version = "0.1", default-features = false }
 
 [target.armv7-unknown-linux-gnueabihf]
 linker = "arm-linux-gnueabihf-gcc"
-
