@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Rust
-        uses: actions/setup-rust@v1
+        uses: actions/setup-rust@v2
         with:
           rust-version: 'stable'
       
@@ -27,7 +27,7 @@ jobs:
         run: cross build --target armv7-unknown-linux-gnueabihf
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: raspberry-pi-build
           path: target/armv7-unknown-linux-gnueabihf/release/
