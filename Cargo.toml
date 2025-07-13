@@ -7,7 +7,7 @@ edition = "2024"
 show-image = "0.14.1"
 gpsd = "0.1.2"
 image = "0.25.6"
-reqwest = "0.12.20"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serde = "1.0.219"
 tokio = { version = "1.45.1", features = ["full"] }
 log = "0.4"
